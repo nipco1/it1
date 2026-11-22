@@ -279,8 +279,10 @@ SQL_TRUST_CERT=true
     if ($LASTEXITCODE -ne 0) { throw 'Creating Windows service failed.' }
   } else { Write-Log 'Reusing the existing NIPCOControl service during recovery installation.' }
   & sc.exe description NIPCOControl "NIPCO Daily Equipment Control API and web application"
-  & sc.exe config NIPCOControl obj= "NT SERVICE\NIPCOControl" password= "" | Out-Null
-  if ($LASTEXITCODE -ne 0) { throw 'Configuring the restricted service identity failed.' }
+  & sc.exe sidtype NIPCOControl unrestricted | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "Configuring service SID type failed (exit $LASTEXITCODE)." }
+  $scObjOut = & cmd.exe /c 'sc.exe config NIPCOControl obj= "NT SERVICE\NIPCOControl" password= "" 2>&1'
+  if ($LASTEXITCODE -ne 0) { throw "Configuring the restricted service identity failed (exit $LASTEXITCODE): $($scObjOut -join ' ')" }
   & icacls.exe $TargetRoot /grant "NT SERVICE\NIPCOControl:(OI)(CI)RX" /T | Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'Granting service read/execute access to application files failed.' }
   & icacls.exe (Join-Path $TargetRoot 'logs') /grant "NT SERVICE\NIPCOControl:(OI)(CI)M" | Out-Null
