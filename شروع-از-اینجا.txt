@@ -1,0 +1,15 @@
+NIPCO Control — بسته استقرار Windows
+
+۱) راهنمای کامل فارسی: README-FA.md
+۲) گزارش وضعیت پیاده‌سازی و آزمون: STATUS-FA.md
+۳) پیش‌بررسی Standalone: Precheck-Standalone.cmd
+۴) نصب مستقل Windows 10/11: Setup-Standalone.cmd
+۵) پیش‌بررسی Server: Precheck-Server.cmd
+۶) نصب مرکزی Windows Server: Setup-Server.cmd
+
+مهم:
+- این تحویل یک کیت PowerShell/CMD است، نه MSI/EXE امضاشده.
+- Node.js و SQL Server باید پیش از اجرا نصب شوند؛ نصب وابستگی‌های npm در زمان نصب به شبکه یا cache کامل npm نیاز دارد.
+- برای Standalone، دیتابیس محلی مجزا ایجاد می‌شود. این نسخه با نصب Server همگام‌سازی خودکار ندارد.
+- پیش از ثبت اطلاعات واقعی، حتماً چک‌لیست آزمون در STATUS-FA.md و مراحل پس از نصب در README-FA.md اجرا و تأیید شوند.
+- Windows 10 از ۱۴ اکتبر ۲۰۲۵ پشتیبانی امنیتی عمومی ندارد؛ ترجیح با Windows 11 یا دستگاه تحت ESU است.
