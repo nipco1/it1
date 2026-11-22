@@ -26,6 +26,10 @@
 6. **پاکسازی وابستگی‌ها و هماهنگی مجوز UI با سرور**:
    - `jsqr` به `dependencies` منتقل و بسته‌های استفاده‌نشده (`playwright`, `pngjs`) حذف شدند و `package-lock.json` به‌روز شد تا نصب در محیط مقصد سریع و پایدار باشد.
    - در `src/views/Manage.tsx` دکمه‌های مخصوص مدیر (ویرایش/حذف گروه، حذف تجهیز، حذف بخش و آیتم) فقط برای مدیر نمایش داده می‌شوند تا با قواعد سرور هماهنگ باشد؛ در `Control.tsx` اسکن تجهیز بازنشسته با پیام واضح رد می‌شود.
+7. **اصلاح ۳ اشکال حیاتی کشف‌شده در تست واقعی Windows Server + SQL Server (PowerShell 5.1)**:
+   - **UTF-8 BOM در اسکریپت‌های PowerShell 5.1**: تمام فایل‌های `deploy/windows/*.ps1` دارای متن فارسی قبلاً بدون BOM بودند که باعث خطای سینتکس فوری `Install-ClientCertificate.ps1` در Windows PowerShell 5.1 می‌شد؛ UTF-8 BOM به تمام ۱۰ فایل `.ps1` اضافه و آزمون رگرسیون آن ثبت شد.
+   - **خطای `SqlConnectionStringBuilder` در PowerShell 5.1**: استفاده از پراپرتی‌های `.DataSource` / `.InitialCatalog` / `.IntegratedSecurity` / `.UserID` / `.ConnectTimeout` در PowerShell 5.1 به دلیل ارث‌بری `IDictionary` خطای `Keyword not supported: 'DataSource'` ایجاد می‌کرد و نصب، بکاپ، بررسی بکاپ و بازیابی را متوقف می‌ساخت؛ هر ۵ اسکریپت به کلیدهای دیکشنری استاندارد (`['Data Source']` و ...) اصلاح و با آزمون رگرسیون محافظت شدند.
+   - **پیکربندی حساب محدود سرویس ویندوز (`NT SERVICE\NIPCOControl`)**: در `Install-NIPCO.ps1` دستور `sc.exe config ... password= ""` در PowerShell 5.1 باعث حذف آرگومان خالی و خطای `sc.exe` (`1057`) می‌شد؛ اکنون ابتدا `sc.exe sidtype NIPCOControl unrestricted` اجرا و سپس `sc.exe config NIPCOControl obj= 'NT SERVICE\NIPCOControl'` به همراه fallback مبتنی بر WMI/CIM (`Win32_Service.Change`) اجرا می‌شود.
 
 ## وضعیت الزامات و آزمون‌های انجام‌شده
 
@@ -39,9 +43,9 @@
 | مدیریت کاربران و مجوزها | ۵ نقش (`admin`, `supervisor`, `engineer`, `technician`, `viewer`)، محدودیت گروهی، UUID استاندارد و الزام رمز جدید برای فعال‌سازی مجدد حساب غیرفعال. | **آزمون کامل ماتریس ۵ نقش، جداسازی گروهی و چرخه عمر کاربر در API و `sql-store.js` انجام و تأیید شد.** |
 | سوابق کنترل، گزارش و ساعت کارکرد | اعتبارسنجی سرور، محاسبه خودکار OK/NOK، الزام محل خرابی و شرح، تاریخ جلالی، کنترل یکنواختی ساعت کارکرد، ثبت مجدد پس از ابطال و Audit Log فقط‌افزودنی. | **آزمون کامل ثبت پیش‌نویس، ثبت کنترل OK/NOK، ساعت کارکرد، ابطال، ثبت مجدد و رد داده نامعتبر انجام و تأیید شد.** |
 | هم‌زمانی چندکاربره | بررسی revision در `/api/state/revision` و رد Snapshot قدیمی با HTTP 409 در تراکنش `SERIALIZABLE`. | **آزمون دو نشست مستقل، مشاهده داده مشترک و رد Snapshot قدیمی با HTTP 409 در تست یکپارچه سرور تأیید شد.** |
-| Backup و Restore | Full SQL Backup با `CHECKSUM`، زمان‌بندی روزانه، نگهداری، `RESTORE VERIFYONLY`، `DBCC CHECKDB` و رفع Orphaned User (`nipco_app`) پس از Restore روی سرور جدید. | **مسیر API پشتیبان‌گیری، `createBackup`/`listBackups` و ساختار اسکریپت‌ها آزموده شدند؛ اجرای واقعی روی SQL Server Engine باید در ماشین Windows مقصد انجام شود.** |
+| Backup و Restore | Full SQL Backup با `CHECKSUM`، زمان‌بندی روزانه، نگهداری، `RESTORE VERIFYONLY`، `DBCC CHECKDB` و رفع Orphaned User (`nipco_app`) پس از Restore روی سرور جدید. | **آزمون کامل واقعی روی Windows Server + SQL Server اجرا و تأیید شد (`Backup-Database.ps1` -> `Test-BackupFile.ps1` -> تغییر داده -> `Restore-Database.ps1` -> `DBCC CHECKDB` -> بازگشت داده و `verified=true`).** |
 | اسکن دوربین و بارکدخوان فیزیکی | `CameraScanner` واقعی با `getUserMedia`، `BarcodeDetector` بومی، جایگزین `jsQR` و بارکدخوان HID با Enter. | **۵ آزمون ایستای اسکن و Build با `jsqr` موفق؛ تست دوربین فیزیکی روی گوشی در HTTPS مقصد انجام شود.** |
-| نصب Standalone ویندوز ۱۰، Windows Server و سرویس خودکار | اسکریپت‌های `Install-NIPCO.ps1`، `ServiceHost.cs`، `Test-Readiness.ps1`، `Verify-Installation.ps1` و `Test-MultiUser.ps1`. | **سورس و اسکریپت‌ها بازبینی و اصلاح شدند؛ اجرای واقعی Windows Service، SQL Server Engine و Restart سیستم‌عامل فقط روی ماشین Windows مقصد ممکن است.** |
+| نصب Standalone ویندوز ۱۰، Windows Server و سرویس خودکار | اسکریپت‌های `Install-NIPCO.ps1`، `ServiceHost.cs`، `Test-Readiness.ps1`، `Verify-Installation.ps1`، `Test-MultiUser.ps1` و `Test-WindowsCI.ps1`. | **آزمون واقعی End-to-End روی Microsoft Windows Server (`windows-latest`) + SQL Server + `Install-NIPCO.ps1` + `ServiceHost.cs` (`csc /warnaserror`) + `NIPCOControl` Service + `Restart-Service` + HTTPS + `Install-ClientCertificate.ps1` با موفقیت ۱۰۰٪ اجرا شد (GitHub Actions Run `#45050374095`).** |
 
 ## نتایج آزمون‌های اجراشده روی همین نسخه نهایی
 
@@ -49,10 +53,11 @@
 - `npm --prefix server ci --no-audit --no-fund` (سرور): **موفق** (۱۵۰ بسته).
 - `npm run typecheck` (`tsc --noEmit`): **موفق — ۰ خطا**.
 - `npm run build` (`vite build`): **موفق** (`dist/index.html` + باندل نهایی CSS/JS).
-- `npm run test:logic`: **۳۸ از ۳۸ موفق**.
+- `npm run test:logic`: **۳۹ از ۳۹ موفق** (شامل آزمون‌های رگرسیون BOM و `SqlConnectionStringBuilder`).
 - `npm run test:scanner`: **۵ از ۵ موفق**.
 - `npm --prefix server run check`: **موفق**.
 - `npm --prefix server test`: **۳۲ از ۳۲ موفق** (شامل `auth.test.js`، `state-api.test.js`، `control-validation.test.js`، `legacy-import.test.js`، `state-security.test.js`، `sql-store.test.js` و `production-e2e.test.js`).
+- **آزمون واقعی Windows Server + SQL Server (GitHub Actions `windows-latest` — Run `#45050374095`)**: **موفق ۱۰۰٪ در هر ۱۱ مرحله** (بررسی سینتکس PowerShell 5.1، Build و تست‌های Node روی ویندوز، کامپایل `ServiceHost.cs` با `/warnaserror`، نصب و پیکربندی SQL Server Express، اجرای `Test-Readiness.ps1`، اجرای ۴ فایل SQL Migration روی دیتابیس کاملاً خام، نصب کامل `Install-NIPCO.ps1 -Mode Server`، تأیید `Verify-Installation.ps1` و `Install-ClientCertificate.ps1`، سناریوی زنده چندکاربره HTTPS + NOK + `stampedLogs` + HTTP 409، حفظ داده پس از `Restart-Service NIPCOControl` و چرخه کامل Backup -> `VERIFYONLY` -> Mutate -> `Restore-Database.ps1` -> `DBCC CHECKDB` -> `verified=true`).
 
 ## چک‌لیست کوتاه راه‌اندازی روی سرور Windows مقصد
 
