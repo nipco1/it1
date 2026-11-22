@@ -22,9 +22,9 @@ try {
   if ($db -notmatch '^[A-Za-z0-9_]{1,128}$') { throw 'Unsafe database name in .env' }
   $builder = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
   $hostName = [string]$cfg['SQL_HOST']; $port = 1433; if ($cfg['SQL_PORT']) { $port = [int]$cfg['SQL_PORT'] }
-  $builder.DataSource = if ($hostName.Contains(',')) { $hostName } else { "$hostName,$port" }
-  $builder.InitialCatalog = 'master'; $builder.UserID = $cfg['SQL_USER']; $builder.Password = $cfg['SQL_PASSWORD']
-  $builder.Encrypt = $true; $builder.TrustServerCertificate = ($cfg['SQL_TRUST_CERT'] -eq 'true'); $builder.ConnectTimeout = 20
+  $builder['Data Source'] = if ($hostName.Contains(',')) { $hostName } else { "$hostName,$port" }
+  $builder['Initial Catalog'] = 'master'; $builder['User ID'] = $cfg['SQL_USER']; $builder['Password'] = $cfg['SQL_PASSWORD']
+  $builder['Encrypt'] = $true; $builder['TrustServerCertificate'] = ($cfg['SQL_TRUST_CERT'] -eq 'true'); $builder['Connect Timeout'] = 20
   $cn = New-Object System.Data.SqlClient.SqlConnection($builder.ConnectionString); $cn.Open()
   $fileName = $db + '_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '.bak'
   $file = Join-Path $backupDir $fileName

@@ -140,8 +140,8 @@ try {
   }
 
   $dbaBuilder=New-Object System.Data.SqlClient.SqlConnectionStringBuilder
-  $dbaBuilder.DataSource=if ($SqlServer.Contains(',')) { $SqlServer } else { "$SqlServer,$SqlPort" }
-  $dbaBuilder.InitialCatalog='master'; $dbaBuilder.IntegratedSecurity=$true; $dbaBuilder.Encrypt=$true; $dbaBuilder.TrustServerCertificate=$true; $dbaBuilder.ConnectTimeout=15
+  $dbaBuilder['Data Source']=if ($SqlServer.Contains(',')) { $SqlServer } else { "$SqlServer,$SqlPort" }
+  $dbaBuilder['Initial Catalog']='master'; $dbaBuilder['Integrated Security']=$true; $dbaBuilder['Encrypt']=$true; $dbaBuilder['TrustServerCertificate']=$true; $dbaBuilder['Connect Timeout']=15
   $dbaCs=$dbaBuilder.ConnectionString
   $sqlMajor=[int](Sql-Scalar $dbaCs "SELECT CAST(SERVERPROPERTY('ProductMajorVersion') AS int)")
   $windowsOnly=[int](Sql-Scalar $dbaCs "SELECT CONVERT(int,SERVERPROPERTY('IsIntegratedSecurityOnly'))")
@@ -166,7 +166,7 @@ try {
   $loginSql="IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name=N'$appLogin') BEGIN CREATE LOGIN [$appLogin] WITH PASSWORD=N'$appSqlPassword', CHECK_POLICY=ON, CHECK_EXPIRATION=OFF; END ELSE ALTER LOGIN [$appLogin] WITH PASSWORD=N'$appSqlPassword', CHECK_POLICY=ON, CHECK_EXPIRATION=OFF; ALTER LOGIN [$appLogin] ENABLE;"
   Sql-Exec $dbaCs $loginSql 0
   $dbAdminBuilder=New-Object System.Data.SqlClient.SqlConnectionStringBuilder($dbaCs)
-  $dbAdminBuilder.InitialCatalog=$Database
+  $dbAdminBuilder['Initial Catalog']=$Database
   $dbAdminCs=$dbAdminBuilder.ConnectionString
   $loginDbSql="IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name=N'$appLogin') CREATE USER [$appLogin] FOR LOGIN [$appLogin]; IF IS_ROLEMEMBER(N'db_backupoperator',N'$appLogin') <> 1 ALTER ROLE db_backupoperator ADD MEMBER [$appLogin];"
   Sql-Exec $dbAdminCs $loginDbSql 0

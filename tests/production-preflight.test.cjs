@@ -252,3 +252,15 @@ test('shiftOfTime resolves against configured shifts and defaults to production 
   assert.match(form, /shiftOfTime\(nowHM\(\),\s*db\.shifts\)/);
 });
 
+test('PowerShell 5.1 scripts include UTF-8 BOM and use dictionary syntax for SqlConnectionStringBuilder', () => {
+  const psDir = path.join(root, 'deploy/windows');
+  for (const name of fs.readdirSync(psDir).filter((f) => f.endsWith('.ps1'))) {
+    const raw = fs.readFileSync(path.join(psDir, name));
+    if (raw.some((b) => b >= 0x80)) {
+      assert.equal(raw[0] === 0xEF && raw[1] === 0xBB && raw[2] === 0xBF, true, `${name} must start with UTF-8 BOM for PowerShell 5.1`);
+    }
+    const text = raw.toString('utf8');
+    assert.doesNotMatch(text, /Builder\.(DataSource|InitialCatalog|IntegratedSecurity|UserID|ConnectTimeout)\s*=/, `${name} must use SqlConnectionStringBuilder['...'] dictionary keys for PowerShell 5.1`);
+  }
+});
+

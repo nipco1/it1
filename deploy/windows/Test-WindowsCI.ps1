@@ -139,19 +139,19 @@ Write-Host '[PASS] Test-Readiness.ps1 passed' -ForegroundColor Green
 # 6. Fresh-database SQL migration verification (001 -> 003 -> 004 -> 005)
 Write-Step '6. Verify all 4 SQL migrations on a 100% fresh empty SQL Server database'
 $masterBuilder = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
-$masterBuilder.DataSource = "localhost,$SqlPort"
-$masterBuilder.InitialCatalog = 'master'
-$masterBuilder.IntegratedSecurity = $true
-$masterBuilder.Encrypt = $true
-$masterBuilder.TrustServerCertificate = $true
-$masterBuilder.ConnectTimeout = 30
+$masterBuilder['Data Source'] = "localhost,$SqlPort"
+$masterBuilder['Initial Catalog'] = 'master'
+$masterBuilder['Integrated Security'] = $true
+$masterBuilder['Encrypt'] = $true
+$masterBuilder['TrustServerCertificate'] = $true
+$masterBuilder['Connect Timeout'] = 30
 $masterCs = $masterBuilder.ConnectionString
 
 $migDb = 'NIPCO_MigVerify'
 Sql-Exec $masterCs "IF DB_ID(N'$migDb') IS NOT NULL BEGIN ALTER DATABASE [$migDb] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$migDb]; END; CREATE DATABASE [$migDb];"
 Sql-Exec $masterCs "IF NOT EXISTS (SELECT 1 FROM sys.sql_logins WHERE name=N'nipco_app') CREATE LOGIN [nipco_app] WITH PASSWORD=N'TempCiLoginPass!2026#99', CHECK_POLICY=ON, CHECK_EXPIRATION=OFF;"
 $migBuilder = New-Object System.Data.SqlClient.SqlConnectionStringBuilder($masterCs)
-$migBuilder.InitialCatalog = $migDb
+$migBuilder['Initial Catalog'] = $migDb
 $migCs = $migBuilder.ConnectionString
 Sql-Exec $migCs "IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name=N'nipco_app') CREATE USER [nipco_app] FOR LOGIN [nipco_app];"
 foreach ($mig in @('001_auth.sql', '003_app_state_and_users.sql', '004_remove_embedded_user_credentials.sql', '005_runtime_least_privilege.sql')) {
@@ -166,7 +166,7 @@ Write-Step '7. Run real Install-NIPCO.ps1 (Mode: Server, TLS, Windows Service, F
 $prodDb = 'NIPCO_Control_CI'
 Sql-Exec $masterCs "IF DB_ID(N'$prodDb') IS NOT NULL BEGIN ALTER DATABASE [$prodDb] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$prodDb]; END; CREATE DATABASE [$prodDb];"
 $prodBuilder = New-Object System.Data.SqlClient.SqlConnectionStringBuilder($masterCs)
-$prodBuilder.InitialCatalog = $prodDb
+$prodBuilder['Initial Catalog'] = $prodDb
 $prodCs = $prodBuilder.ConnectionString
 Sql-Exec $prodCs (Get-Content -LiteralPath (Join-Path $RepoRoot 'server\sql\001_auth.sql') -Raw)
 Sql-Exec $prodCs (Get-Content -LiteralPath (Join-Path $RepoRoot 'server\sql\003_app_state_and_users.sql') -Raw)

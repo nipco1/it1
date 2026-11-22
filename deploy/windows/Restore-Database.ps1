@@ -17,7 +17,7 @@ $cfg = @{}
 foreach ($line in Get-Content -LiteralPath $cfgPath) { if ($line -match '^\s*([^#=\s]+)\s*=\s*(.*)\s*$') { $cfg[$Matches[1]] = $Matches[2].Trim().Trim('"').Trim("'") } }
 $builder = New-Object System.Data.SqlClient.SqlConnectionStringBuilder
 $hostName=[string]$cfg['SQL_HOST']; $port=1433; if ($cfg['SQL_PORT']) { $port=[int]$cfg['SQL_PORT'] }
-$builder.DataSource=if ($hostName.Contains(',')) { $hostName } else { "$hostName,$port" }; $builder.InitialCatalog='master'; $builder.IntegratedSecurity=$true; $builder.Encrypt=$true; $builder.TrustServerCertificate=($cfg['SQL_TRUST_CERT'] -eq 'true'); $builder.ConnectTimeout=20
+$builder['Data Source']=if ($hostName.Contains(',')) { $hostName } else { "$hostName,$port" }; $builder['Initial Catalog']='master'; $builder['Integrated Security']=$true; $builder['Encrypt']=$true; $builder['TrustServerCertificate']=($cfg['SQL_TRUST_CERT'] -eq 'true'); $builder['Connect Timeout']=20
 $db = [string]$cfg['SQL_DATABASE']; if ($db -notmatch '^[A-Za-z0-9_]{1,128}$') { throw 'نام دیتابیس نامعتبر است.' }
 if (-not $PSCmdlet.ShouldProcess($db, "Restore from $file (the current database will be replaced)")) { return }
 $svc = Get-Service -Name $ServiceName -ErrorAction Stop
