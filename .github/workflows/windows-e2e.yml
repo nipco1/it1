@@ -36,5 +36,11 @@ jobs:
             $pos = if ($_.InvocationInfo) { "$($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber) ($($_.InvocationInfo.Line.Trim()))" } else { 'unknown' }
             $msg = ($_.Exception.Message -replace "`r?`n", ' | ')
             Write-Host "::error::FAILED at $pos :: $msg"
+            foreach ($lf in @('C:\NIPCO\Control\logs\service-host.log','C:\NIPCO\Control\logs\install.log','C:\NIPCO\Control\logs\backup.log','C:\NIPCO\Control\logs\restore.log')) {
+              if (Test-Path $lf) {
+                $tail = ((Get-Content -LiteralPath $lf -Tail 15 -ErrorAction SilentlyContinue) -join ' | ')
+                if ($tail) { Write-Host "::notice::LOG($lf): $tail" }
+              }
+            }
             throw
           }

@@ -281,8 +281,13 @@ SQL_TRUST_CERT=true
   & sc.exe description NIPCOControl "NIPCO Daily Equipment Control API and web application"
   & sc.exe sidtype NIPCOControl unrestricted | Out-Null
   if ($LASTEXITCODE -ne 0) { throw "Configuring service SID type failed (exit $LASTEXITCODE)." }
-  $scObjOut = & cmd.exe /c 'sc.exe config NIPCOControl obj= "NT SERVICE\NIPCOControl" password= "" 2>&1'
-  if ($LASTEXITCODE -ne 0) { throw "Configuring the restricted service identity failed (exit $LASTEXITCODE): $($scObjOut -join ' ')" }
+  $scObjOut = & sc.exe config NIPCOControl obj= 'NT SERVICE\NIPCOControl' 2>&1
+  if ($LASTEXITCODE -ne 0) {
+    $changeRes = Invoke-CimMethod -InputObject (Get-CimInstance -ClassName Win32_Service -Filter "Name='NIPCOControl'") -MethodName Change -Arguments @{ StartName = 'NT SERVICE\NIPCOControl' }
+    if (-not $changeRes -or $changeRes.ReturnValue -ne 0) {
+      throw "Configuring the restricted service identity failed (sc exit $LASTEXITCODE: $($scObjOut -join ' '); WMI ReturnValue=$($changeRes.ReturnValue))."
+    }
+  }
   & icacls.exe $TargetRoot /grant "NT SERVICE\NIPCOControl:(OI)(CI)RX" /T | Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'Granting service read/execute access to application files failed.' }
   & icacls.exe (Join-Path $TargetRoot 'logs') /grant "NT SERVICE\NIPCOControl:(OI)(CI)M" | Out-Null
