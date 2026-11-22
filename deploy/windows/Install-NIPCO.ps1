@@ -285,7 +285,7 @@ SQL_TRUST_CERT=true
   if ($LASTEXITCODE -ne 0) {
     $changeRes = Invoke-CimMethod -InputObject (Get-CimInstance -ClassName Win32_Service -Filter "Name='NIPCOControl'") -MethodName Change -Arguments @{ StartName = 'NT SERVICE\NIPCOControl' }
     if (-not $changeRes -or $changeRes.ReturnValue -ne 0) {
-      throw "Configuring the restricted service identity failed (sc exit $LASTEXITCODE: $($scObjOut -join ' '); WMI ReturnValue=$($changeRes.ReturnValue))."
+      throw "Configuring the restricted service identity failed (sc exit ${LASTEXITCODE}: $($scObjOut -join ' '); WMI ReturnValue=$($changeRes.ReturnValue))."
     }
   }
   & icacls.exe $TargetRoot /grant "NT SERVICE\NIPCOControl:(OI)(CI)RX" /T | Out-Null
