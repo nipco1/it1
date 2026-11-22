@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [ValidateSet('Standalone','Server')][string]$Mode = 'Standalone',
   [string]$SqlExpressInstaller = '',

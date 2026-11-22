@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([string]$AppRoot = 'C:\NIPCO\Control', [ValidateRange(7,3650)][int]$RetentionDays = 30)
 $ErrorActionPreference = 'Stop'
 $envFile = Join-Path $AppRoot '.env'

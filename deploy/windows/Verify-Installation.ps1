@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [ValidateSet('Standalone','Server','Client')][string]$Mode = 'Standalone',
   [string]$BaseUrl = 'https://localhost:8443',

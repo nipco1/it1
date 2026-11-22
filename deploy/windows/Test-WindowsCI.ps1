@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [string]$TargetRoot = 'C:\NIPCO\Control',
   [int]$SqlPort = 1433

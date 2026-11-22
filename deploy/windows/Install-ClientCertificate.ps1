@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
   [Parameter(Mandatory=$true)][string]$CertificateFile,
   [Parameter(Mandatory=$true)][string]$ExpectedDnsName

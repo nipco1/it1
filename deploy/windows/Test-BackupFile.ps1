@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$BackupFile, [string]$AppRoot='C:\NIPCO\Control')
 $ErrorActionPreference='Stop'
 $backupRoot=[IO.Path]::GetFullPath((Join-Path $AppRoot 'Backups'))

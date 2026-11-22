@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$BaseUrl)
 $ErrorActionPreference = 'Stop'
 $Origin = $BaseUrl.TrimEnd('/')
