@@ -11,6 +11,7 @@ function Write-Step([string]$Title) {
   Write-Host "`n============================================================" -ForegroundColor Cyan
   Write-Host "STEP: $Title" -ForegroundColor Cyan
   Write-Host "============================================================" -ForegroundColor Cyan
+  Write-Host "::notice::STEP: $Title"
 }
 
 function Sql-Exec([string]$ConnectionString, [string]$CommandText, [int]$Timeout = 120) {

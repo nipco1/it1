@@ -28,6 +28,13 @@ jobs:
       - name: Run full Windows Server + SQL Server + Service + HTTPS + Backup/Restore E2E suite
         shell: powershell
         run: |
-          Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
-          & .\deploy\windows\Test-WindowsCI.ps1 -RepoRoot $env:GITHUB_WORKSPACE
+          try {
+            & .\deploy\windows\Test-WindowsCI.ps1
+            Write-Host "::notice::ALL_WINDOWS_E2E_PASSED"
+          } catch {
+            $pos = if ($_.InvocationInfo) { "$($_.InvocationInfo.ScriptName):$($_.InvocationInfo.ScriptLineNumber) ($($_.InvocationInfo.Line.Trim()))" } else { 'unknown' }
+            $msg = ($_.Exception.Message -replace "`r?`n", ' | ')
+            Write-Host "::error::FAILED at $pos :: $msg"
+            throw
+          }
