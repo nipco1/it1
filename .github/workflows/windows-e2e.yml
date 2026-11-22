@@ -1,0 +1,33 @@
+name: Windows Server + SQL Server E2E Verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - arena/3c712275-it1
+    paths:
+      - 'deploy/windows/**'
+      - 'server/**'
+      - 'src/**'
+      - '.github/workflows/windows-e2e.yml'
+
+jobs:
+  windows-e2e:
+    name: Real Windows Server + SQL Server E2E
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run full Windows Server + SQL Server + Service + HTTPS + Backup/Restore E2E suite
+        shell: powershell
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          & .\deploy\windows\Test-WindowsCI.ps1 -RepoRoot $env:GITHUB_WORKSPACE
